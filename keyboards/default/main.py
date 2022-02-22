@@ -3,10 +3,9 @@ from aiogram.types.reply_keyboard import KeyboardButton, ReplyKeyboardMarkup, Re
 
 
 async def main_panel():
-    markup = ReplyKeyboardMarkup(resize_keyboard=True).add(
-        KeyboardButton('🎧 Моя музика')
-    ).add(
-        KeyboardButton('Мої відео')
-    )
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row(KeyboardButton('🎧 Моя музика'), KeyboardButton('🎞 Мої відео'))
+    markup.row(KeyboardButton('➕ Додати музику'), KeyboardButton('➕ Додати відео'))
+    
     return markup
 

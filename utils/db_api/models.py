@@ -90,23 +90,25 @@ class Music(base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer)
     name = Column(String)
+    performer = Column(String)
     category = Column(String)
     id_code = Column(String, unique=True)
     file_id = Column(String)
 
-    def __init__(self, user_id, name, category, id_code, file_id):
+    def __init__(self, user_id, name, performer, category, id_code, file_id):
         self.name = name
+        self.performer = performer
         self.category = category
         self.id_code = id_code 
         self.user_id = user_id
         self.file_id = file_id
 
     def __repr__(self) -> str:
-        return {'name':self.name, 'category': self.category, 'id_code': self.id_code, 'user_id': self.user_id, 'file_id': self.file_id}
+        return {'name': self.name, 'performer': self.performer, 'category': self.category, 'id_code': self.id_code, 'user_id': self.user_id, 'file_id': self.file_id}
 
     @property
     def get(self):
-        return {'name':self.name, 'category': self.category, 'id_code': self.id_code, 'user_id': self.user_id, 'file_id': self.file_id}
+        return {'name': self.name, 'performer': self.performer, 'category': self.category, 'id_code': self.id_code, 'user_id': self.user_id, 'file_id': self.file_id}
 
 
 class Video(base):

@@ -1,8 +1,13 @@
-from aiogram.types import message
+from aiogram.dispatcher.filters import Command
+from aiogram.types import Message
+
+from filters import IsPrivate
 from utils.db_api.commands import register_user
+from loader import dp
 
 
-async def register(msg: message):
+@dp.message_handler(IsPrivate(), Command('reg'))
+async def register(msg: Message):
     '''
             User registration function 
     '''
@@ -28,3 +33,5 @@ async def register(msg: message):
     user_reg = await register_user(data)
     if user_reg:
         await msg.answer(user_reg)
+    else:
+        await msg.answer('Невідома помилка')

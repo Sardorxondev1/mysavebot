@@ -1,9 +1,11 @@
 import asyncio
 import configparser
 from datetime import date, datetime
-from handlers.users.add_musics import music_st_panel
+from handlers.users.add_function import add_func, add_video
 
 from aiogram.utils.exceptions import Unauthorized
+
+from handlers.users.control_music import music_st_panel
 from handlers.users.registration import register
 from typing import Union
 from keyboards.inline.apanel_menu import keyboard_apanel, apanel_cd
@@ -40,76 +42,21 @@ async def one_panel(msg: Union[CallbackQuery, Message], **kwargs):
         await call.message.edit_reply_markup(markup)
 
 
-async def control_music(call, **kwargs):
-    pass
-
-
-async def music_list(call, **kwargs):
-    pass
-
-
-@dp.message_handler(IsPrivate(), Text(equals='Вимкнути'), state=['send_msg', None])
-async def cancel(msg: Message):
-    state = dp.current_state(
-        chat=msg.chat.id, user=msg.from_user.id)
-    state_now = await state.get_state()
-    if state_now == 'send_msg':
-        await state.set_state(None)
-        await set_chat(msg.from_user.id)
-    await one_panel(msg)
-
-
 @dp.message_handler(IsPrivate(), Text(equals='🎧 Моя музика'))
 async def music_change(msg: Message):
     await music_st_panel(msg, name_menu='music', category=None)
 
 
-@dp.message_handler(IsPrivate(), Text(equals='Мої відео'))
+@dp.message_handler(IsPrivate(), Text(equals='🎞 Мої відео'))
 async def sms_change(msg: Message):
     await music_st_panel(msg, name_menu='video', category=None)
-
-
-async def send_message(call: CallbackQuery, **kwargs):
-    state = dp.current_state(
-        chat=int(kwargs['chat_id']), user=int(kwargs['user_id']))
-    await state.set_state('send_msg')
-    await set_chat(user_id=call.from_user.id, chat_id=kwargs['group_id'])
-    markup = ReplyKeyboardMarkup(resize_keyboard=True).add('Вимкнути')
-    await call.message.answer('Можна писати', reply_markup=markup)
-
-
-@dp.callback_query_handler(IsPrivate(), apanel_cd.filter())
-async def control_music(call: CallbackQuery, callback_data: dict, **kwargs):
-    level = callback_data.get('level')
-    user_id = callback_data.get('user_id')
-    chat_id = callback_data.get('chat_id')
-    func = callback_data.get('func')
-    group_id = callback_data.get('group_id')
-    file_id = callback_data.get('file_id')
-
-    levels = {
-        '0': one_panel,
-        '1': send_message,
-    }
-    try:
-        current_level = levels[level]
-        await current_level(
-            call,
-            user_id=user_id,
-            chat_id=chat_id,
-            func=func,
-            group_id=group_id,
-            file_id=file_id,
-        )
-    except KeyError as err:
-        await bot.answer_callback_query(call.id, text='Неможливо пройти дальше!\nМеню у розробці!')
-        logging.error(err)
-    print(f'{level} | {user_id} | {chat_id} |{group_id} | {file_id} | {func}')
-
-
-@dp.message_handler(IsPrivate(), Command('remove'))
-async def remove_keyboard(msg: Message):
-    text = await msg.reply('Кнопки забрані', reply_markup=ReplyKeyboardRemove())
-    await asyncio.sleep(3)
-    await text.delete()
-    await msg.delete()
+    
+    
+@dp.message_handler(IsPrivate(), Text(equals='➕ Додати музику'))
+async def music_add(msg: Message):
+    await add_func(msg)
+    
+    
+@dp.message_handler(IsPrivate(), Text(equals='➕ Додати відео'))
+async def video_add(msg: Message):
+    await add_video(msg)

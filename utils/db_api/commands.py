@@ -6,6 +6,8 @@ import logging
 
 base.metadata.create_all(engine)
 
+session.commit()
+
 
 def commit():
     session.commit()
@@ -78,7 +80,7 @@ async def register_user(data: dict):
         username = data['username']
         user_id = data['user_id']
         if check(data['user_id'], User):
-            return None
+            return 'Ви вже зареєстровані'
         else:
             add([User(user_id, data['chat_id'],
                 data['username'], data['fullname'])])
@@ -103,11 +105,12 @@ async def control_music(data: dict):
         if data['function'] == 'add':
             user_id = data['user_id']
             name = data['name_music']
+            performer = data['performer']
             category = data['category']
             file_id = data['file_id']
             id_code = data['file_unique_id']
             if not await check_musics(user_id, id_code):
-                add([Music(user_id, name, category, id_code, file_id)])
+                add([Music(user_id, name, performer, category, id_code, file_id)])
                 commit()
                 return True
         elif data['function'] == 'remove':
@@ -185,7 +188,6 @@ async def search_groups(chat_id=None):
 
 async def search_musics(user_id, file_unique_id=None, category=None):
     text = ''
-    print(category)
     if not file_unique_id:
         if not category:
             text = session.query(Music).filter_by(user_id=user_id).distinct()
