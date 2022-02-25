@@ -3,6 +3,7 @@ import logging
 from typing import Union
 
 from aiogram import types
+import aiogram
 from aiogram.dispatcher.filters.builtin import Command, Text
 from aiogram.dispatcher.storage import FSMContext
 from aiogram.types.callback_query import CallbackQuery
@@ -49,6 +50,9 @@ async def music_show(call: CallbackQuery, **kwargs):
 	except AttributeError as err:
 		logging.error(err)
 		await dp.bot.answer_callback_query(call.id, text='Не найдено пісню[Оновіть сторінку]')
+	except aiogram.utils.exceptions.WrongFileIdentifier as err:
+		await control_music({'function': 'remove', 'user_id': kwargs['user_id'], 'file_unique_id': kwargs['id_code']})
+		await dp.bot.answer_callback_query(call.id, text='Одну з пісень не найдено! Оновіть сторінку')
 
 
 async def video_show(call: CallbackQuery, **kwargs):
@@ -68,11 +72,16 @@ async def all_musics(call: CallbackQuery, **kwargs):
 	for music in musics[int(page[0]):int(page[1])]:
 		music = music.get
 		markup = await music_add_panel(user_id=music['user_id'], id_code=music['id_code'])
-		await call.message.answer_audio(audio=music['file_id'], reply_markup=markup)
+		try:
+			await call.message.answer_audio(audio=music['file_id'], reply_markup=markup)
+		except aiogram.utils.exceptions.WrongFileIdentifier as err:
+			await control_music({'function': 'remove', 'user_id': music['user_id'], 'file_unique_id': music['id_code']})
+			await dp.bot.answer_callback_query(call.id, text='Одну з пісень не найдено! Оновіть сторінку')
+
 	markup = await musics_keyboard(kwargs["user_id"], name_menu='music', category=None)
 	await bot.delete_message(chat_id=kwargs['user_id'], message_id=message_id)
 	await bot.send_message(chat_id=kwargs['user_id'], text='M E N U [music]', reply_markup=markup)
-	
+		
 	
 async def change_category(call: CallbackQuery, **kwargs):
 	user_id = kwargs['user_id']
