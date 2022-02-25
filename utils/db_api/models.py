@@ -92,7 +92,7 @@ class Music(base):
     name = Column(String)
     performer = Column(String)
     category = Column(String)
-    id_code = Column(String, unique=True)
+    id_code = Column(String)
     file_id = Column(String)
 
     def __init__(self, user_id, name, performer, category, id_code, file_id):
@@ -117,7 +117,7 @@ class Video(base):
     user_id = Column(Integer)
     name = Column(String)
     category = Column(String)
-    id_code = Column(String, unique=True)
+    id_code = Column(String)
     file_id = Column(String)
 
     def __init__(self, user_id, name, category, id_code, file_id):

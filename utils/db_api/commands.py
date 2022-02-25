@@ -4,9 +4,9 @@ from sqlalchemy import func
 from loader import session, base, engine
 import logging
 
-base.metadata.create_all(engine)
+# base.metadata.drop_all(engine)
 
-session.commit()
+base.metadata.create_all(engine)
 
 
 def commit():
@@ -43,8 +43,10 @@ async def check_admin(user_id):
 
 async def check_musics(user_id, file_unique_id):
     if session.query(Music).filter(Music.user_id == int(user_id), Music.id_code == file_unique_id).first():
+        print('True')
         return True
     else:
+        print('False')
         return False
     
     
