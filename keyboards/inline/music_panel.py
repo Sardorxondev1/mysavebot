@@ -1,7 +1,8 @@
-from utils.db_api.commands import search_max_page, search_musics, search_videos
+from utils.db_api.commands import get_categories, search_max_page, search_musics, search_videos, get_page
 from aiogram.types.inline_keyboard import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 from loader import config
+from utils.db_api.models import Music, Video
 
 musics_cd = CallbackData('musics', 'action', 'func', 'user_id', 'id_code', 'pages', 'page', 'from_page', 'name_menu')
 
@@ -18,38 +19,38 @@ async def musics_keyboard(user_id, page='1', count_page_max=config['MUSIC_SETTIN
     elif name_menu == 'video':
         datas = await search_videos(user_id, category=category)
     elif name_menu == 'change_menu':
-        datas = await search_musics(user_id, category=category)
+        datas = await get_categories(user_id=user_id)
     else:
         datas = ['Нічого немає']
-    count = await search_max_page(user_id)
-    pages = str(int(count) / int(count_page_max)).split('.')
-    # pages_2 = int(count) / int(count_page_max)
-    
+    count = 0
+    for data in datas:
+        count += 1
+        
+    count_max_on_page = config['MUSIC_SETTINGS']['counts']
+    pages = str(int(count) / int(count_max_on_page)).split('.')
     if int(pages[1]) > 0:
         pages = int(pages[0]) + 1
     else:
         pages = int(pages[0])
-    categories = []
+    print(pages, count)
     if name_menu == 'music' or name_menu == 'video':
         for data in datas[int(count_page_min):int(count_page_max)]:
             data = data.get
             callback = make_callback(action=name_menu, user_id=data['user_id'], id_code=data['id_code'])
             markup.insert(InlineKeyboardButton(text=f'{data["performer"]} - {data["name"]}', callback_data=callback))
     elif name_menu == 'change_menu':
-        for data in datas[int(count_page_min):int(count_page_max)]:
-            data = data.get
-            if not data['category'] in categories:
-                callback = make_callback(action=name_menu, user_id=data['user_id'], func=data['category'])
-                markup.insert(InlineKeyboardButton(text=f'{data["category"]}', callback_data=callback))
-                categories.append(data['category'])
+        print(f'DATAS: {datas}')
+        for category in datas[int(count_page_min):int(count_page_max)]:
+            callback = make_callback(action=name_menu, user_id=user_id, func=category)
+            markup.insert(InlineKeyboardButton(text=f'{category}', callback_data=callback))
     markup.row(InlineKeyboardButton(text='Вперід ⏩', callback_data=make_callback(action='navigate', func='next', user_id=user_id, pages=pages, page=page, from_page=f'{count_page_min},{count_page_max}', name_menu=name_menu)),
-               InlineKeyboardButton(text=f'Оновити[{page} ст.]', callback_data=make_callback(user_id=user_id, from_page=f'{count_page_min},{count_page_max}', page=page, action='update_page', name_menu=name_menu)),
+               InlineKeyboardButton(text=f'Оновити[{page}/{pages} ст.]', callback_data=make_callback(user_id=user_id, from_page=f'{count_page_min},{count_page_max}', page=page, action='update_page', name_menu=name_menu)),
                InlineKeyboardButton(text='Назад ⏪', callback_data=make_callback(action='navigate', func='back',user_id=user_id, pages=1, page=page, from_page=f'{count_page_min},{count_page_max}', name_menu=name_menu)))
     if not category:
         category = ''
     if name_menu == 'music':
         markup.row(InlineKeyboardButton(text='Загрузити всю сторінку', callback_data=make_callback(action='all_musics', func=category, user_id=user_id, pages=1, page=page, from_page=f'{count_page_min},{count_page_max}', name_menu=name_menu)),
-                   InlineKeyboardButton(text='Вибрати категорію', callback_data=make_callback(action='change_category', func='10',user_id=user_id, pages=1, page=page, from_page=f'{count_page_min},{count_page_max}', name_menu=name_menu)))
+                   InlineKeyboardButton(text='Вибрати категорію', callback_data=make_callback(action='change_category', func='10',user_id=user_id, from_page=f'{count_page_min},{count_page_max}', name_menu=name_menu)))
     elif name_menu == 'change_menu':
         markup.row(InlineKeyboardButton(text='Назад до музики[без категорії]', callback_data=make_callback(action='update_page', func='10',user_id=user_id, pages=1, page=page, from_page=f'{count_page_min},{count_page_max}', name_menu='music')))
     return markup

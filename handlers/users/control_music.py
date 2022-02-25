@@ -14,7 +14,7 @@ from keyboards.inline.music_panel import musics_keyboard, musics_cd
 from loader import config
 from loader import dp, bot
 from states.music_add import Music, Video
-from utils.db_api.commands import control_music, search_musics, control_video, search_videos
+from utils.db_api.commands import control_music, get_categories, search_musics, control_video, search_videos
 
 
 @dp.message_handler(IsPrivate(), Command('get'))
@@ -76,6 +76,7 @@ async def all_musics(call: CallbackQuery, **kwargs):
 	
 async def change_category(call: CallbackQuery, **kwargs):
 	user_id = kwargs['user_id']
+	name_menu = kwargs['name_menu']
 	markup = await musics_keyboard(user_id=user_id, name_menu='change_menu')
 	await call.message.edit_reply_markup(markup)
 	
@@ -94,6 +95,7 @@ async def navigate_button(call: CallbackQuery, **kwargs):
 	p_min = int(from_page.split(',')[0])
 	p_max = int(from_page.split(',')[1])
 	name_menu = kwargs['name_menu']
+	
 	if action == 'next':
 		if not page >= pages:
 			await dp.bot.answer_callback_query(call.id, text='Загружаємо..')

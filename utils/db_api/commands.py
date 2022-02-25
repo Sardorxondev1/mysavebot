@@ -216,15 +216,25 @@ async def search_max_page(user_id):
     count = session.query(func.count(Music.user_id)).filter_by(user_id=user_id).first()
     return count[0]
 
-async def set_chat(chat_id=None, user_id=None):
-    if chat_id and user_id:
+
+async def get_categories(user_id):
+    categories = []
+    data = session.query(Music).filter_by(user_id=user_id).distinct()
+    for dt in data:
+        dt = dt.get 
+        category = dt['category']
+        if not category in categories:
+            categories.append(category)
+    print(categories)
+    return categories
+
+
+async def get_page(user_id):
+    return session.query(User).filter_by(user_id=user_id).distinct().first().get['chat_to_msg']
+
+
+async def set_page(user_id=None, count=None):
+    if user_id and count:
         session.query(User).filter_by(user_id=user_id).update(
-            {"chat_to_msg": str(chat_id)}, synchronize_session="fetch")
+            {"chat_to_msg": f"{count}"}, synchronize_session="fetch")
         commit()
-        return "activate"
-    else:
-        if user_id:
-            session.query(User).filter_by(user_id=user_id).update(
-                {"chat_to_msg": "0"}, synchronize_session="fetch")
-            commit()
-            return "disable"

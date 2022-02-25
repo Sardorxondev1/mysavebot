@@ -18,7 +18,7 @@ from aiogram.types.message import Message
 from aiogram.dispatcher.filters import Command
 from aiogram.types import CallbackQuery
 from loader import dp, bot
-from utils.db_api.commands import check, del_group, search_groups, search_users, set_chat
+from utils.db_api.commands import check, del_group, search_groups, search_users
 from utils.db_api.models import User
 from filters import IsPrivate
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton

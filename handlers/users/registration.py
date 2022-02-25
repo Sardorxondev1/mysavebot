@@ -6,7 +6,7 @@ from utils.db_api.commands import register_user
 from loader import dp
 
 
-@dp.message_handler(IsPrivate(), Command('reg'))
+@dp.message_handler(Command('reg'))
 async def register(msg: Message):
     '''
             User registration function 

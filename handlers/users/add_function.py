@@ -1,19 +1,25 @@
 import asyncio
 import logging
-from typing import Union
 
+import aiogram
 from aiogram import types
 from aiogram.dispatcher.filters.builtin import Command, Text
 from aiogram.dispatcher.storage import FSMContext
-from aiogram.types.callback_query import CallbackQuery
 from aiogram.types.message import Message
 
 from filters import IsPrivate
-from keyboards.inline.music_panel import musics_keyboard, musics_cd
-from loader import config
 from loader import dp
 from states.music_add import Music, Video
-from utils.db_api.commands import control_music, search_musics, control_video, search_videos
+from utils.db_api.commands import control_music, control_video, set_page
+
+
+def check_text(text):
+	text = text.split(' ')
+	count_word = 0
+	for tx in text:
+		for t in tx:
+			count_word += 1
+	
 
 
 @dp.message_handler(IsPrivate(), Command('add_music'))
@@ -22,15 +28,6 @@ async def add_func(msg: Message):
 	await msg.answer('Надішліть категорію\n<code>Для одної та більше пісень</code>')
 	
 	
-@dp.message_handler(IsPrivate(), state=Music.category)
-async def name_music_state(msg: types.Message, state=FSMContext):
-	async with state.proxy() as data:
-		category = msg.text
-		data['category'] = category
-		await msg.reply('Надішліть пісню або пісні')
-		await Music.next()
-
-
 # You can use state '*' if you need to handle all states
 @dp.message_handler(state='*', commands='cancel')
 @dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
@@ -48,6 +45,21 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 	# And remove keyboard (just in case)
 	await message.reply('Скасовано.', reply_markup=types.ReplyKeyboardRemove())
 
+
+@dp.message_handler(IsPrivate(), state=Music.category)
+async def name_music_state(msg: types.Message, state=FSMContext):
+	async with state.proxy() as data:
+		category = msg.text.capitalize()
+		if len(category) > 10:
+			await msg.answer(f'До 26 символів!  Є {len(category)}')
+			await msg.answer('Надішліть категорію\n<code>Для одної та більше пісень</code>\n Щоб відмінити /cancel')
+			await Music.category.set()
+			
+		else:
+			data['category'] = category
+			await msg.reply('Надішліть пісню або пісні\n Щоб відмінити /cancel')
+			await Music.next()
+		
 
 @dp.message_handler(IsPrivate(), state=Music.audio, content_types=types.ContentTypes.AUDIO)
 async def music_in_data(msg: types.Message, state: FSMContext):
@@ -72,12 +84,17 @@ async def music_in_data(msg: types.Message, state: FSMContext):
 			data['file_id'] = file_id
 			data['file_unique_id'] = file_unique_id
 			if await control_music(data):
-				await msg.answer(f'<code>[{performer} - {name}]</code> <b>Добавлено!</b>')
+				await msg.answer(f'<b>[<code>{performer}</code> - <code>{name}</code>]</b> <b>Добавлено!</b>', disable_notification=True)
 			else:
-				await msg.answer(f'<code>[{performer} - {name}]</code> <b>Не вийшло добавити!</b>')
+				await msg.answer(f'<b>[<code>{performer}</code> - <code>{name}</code>]</b> <b>Не вийшло добавити!</b>')
+			await asyncio.sleep(0.5)
 			await state.finish()
 		except KeyError:
 			pass
+		except aiogram.utils.exceptions.RetryAfter as err:
+			await asyncio.sleep(0.5)
+		except aiogram.utils.exceptions.CantParseEntities as err:
+			await asyncio.sleep(0.5)
 
 
 @dp.message_handler(IsPrivate(), Command('add_video'))
@@ -135,27 +152,13 @@ async def process_name_music(msg: types.Message, state: FSMContext):
 		else:
 			await msg.answer(f'Не вийшло добавити ')
 		await state.finish()
+		
+		
+@dp.message_handler(IsPrivate(), Command('set_page'))
+async def change_page_on(msg: Message):
+	try:
+		args = int(msg.get_args()[0])
+		await set_page(msg.from_user.id, args)
+	except IndexError as err:
+		await msg.answer('Вкажіть кількість')
 
-
-@dp.message_handler(IsPrivate(), Command('get_categories'))
-async def get_categories(msg: types.Message):
-	musics = await search_musics(msg.from_user.id)
-	videos = await search_videos(msg.from_user.id)
-	ms = []
-	vd = []
-	data = []
-	for music, video in zip(musics, videos):
-		music = music.get
-		video = video.get
-		category_music = f'[MUSIC] {music["category"]}'
-		category_video = f'[VIDEO] {video["category"]}'
-		if category_music in data:
-			pass
-		else:
-			data.append(category_music)
-		if category_video in data:
-			pass
-		else:
-			data.append(category_video)
-	categories = '\n'.join(data)
-	await msg.answer(categories)
