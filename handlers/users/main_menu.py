@@ -1,27 +1,18 @@
-import asyncio
-import configparser
-from datetime import date, datetime
 from handlers.users.add_function import add_func, add_video
 
-from aiogram.utils.exceptions import Unauthorized
 
 from handlers.users.control_music import music_st_panel
 from handlers.users.registration import register
 from typing import Union
-from keyboards.inline.apanel_menu import keyboard_apanel, apanel_cd
 from keyboards.default.main import main_panel
 from aiogram.dispatcher.filters import Text
-from sqlalchemy.sql.functions import user
-import logging
-from aiogram import types
 from aiogram.types.message import Message
 from aiogram.dispatcher.filters import Command
 from aiogram.types import CallbackQuery
-from loader import dp, bot
-from utils.db_api.commands import check, del_group, search_groups, search_users
+from loader import dp, config
+from utils.db_api.commands import check
 from utils.db_api.models import User
 from filters import IsPrivate
-from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
 
 chat_id_user = 0
 
@@ -60,3 +51,23 @@ async def music_add(msg: Message):
 @dp.message_handler(IsPrivate(), Text(equals='➕ Додати відео'))
 async def video_add(msg: Message):
     await add_video(msg)
+
+
+@dp.message_handler(IsPrivate(), Command('page'))
+async def change_page_on(msg: Message):
+    config.read('data/config.ini')
+    if int(config['DEFAULT']['id_owner_bot']) == int(msg.from_user.id):
+        count = msg.get_args().split(' ')[0]
+        text = ''
+        try:
+            config.read('data/config.ini')
+            count = int(count)
+            old_count = config['MUSIC_SETTINGS']['counts']
+            config['MUSIC_SETTINGS']['counts'] = str(count)
+            text =  f'Кількість пісень на сторінці змінено на {count} з {old_count}'
+            with open('data/config.ini', 'w') as fileconfig:
+                config.write(fileconfig)
+        except Exception as err:
+            text = 'Не вийшло'
+            print(err)
+        await msg.answer(text)

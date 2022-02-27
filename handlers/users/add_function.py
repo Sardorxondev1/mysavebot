@@ -10,7 +10,7 @@ from aiogram.types.message import Message
 from filters import IsPrivate
 from loader import dp
 from states.music_add import Music, Video
-from utils.db_api.commands import control_music, control_video, set_page
+from utils.db_api.commands import control_music, control_video
 
 
 def check_text(text):
@@ -25,7 +25,7 @@ def check_text(text):
 @dp.message_handler(IsPrivate(), Command('add_music'))
 async def add_func(msg: Message):
 	await Music.category.set()
-	await msg.answer('Надішліть категорію\n<code>Для одної та більше пісень</code>')
+	await msg.answer('Напиши категорію\n Щоб скасувати /cancel')
 	
 	
 # You can use state '*' if you need to handle all states
@@ -51,13 +51,13 @@ async def name_music_state(msg: types.Message, state=FSMContext):
 	async with state.proxy() as data:
 		category = msg.text.capitalize()
 		if len(category) > 10:
-			await msg.answer(f'До 26 символів!  Є {len(category)}')
+			await msg.answer(f'До 10 символів!  Є {len(category)}')
 			await msg.answer('Надішліть категорію\n<code>Для одної та більше пісень</code>\n Щоб відмінити /cancel')
 			await Music.category.set()
 			
 		else:
 			data['category'] = category
-			await msg.reply('Надішліть пісню або пісні\n Щоб відмінити /cancel')
+			await msg.reply('Давай пісні\n Щоб скасувати /cancel')
 			await Music.next()
 		
 
@@ -154,11 +154,5 @@ async def process_name_music(msg: types.Message, state: FSMContext):
 		await state.finish()
 		
 		
-@dp.message_handler(IsPrivate(), Command('set_page'))
-async def change_page_on(msg: Message):
-	try:
-		args = int(msg.get_args()[0])
-		await set_page(msg.from_user.id, args)
-	except IndexError as err:
-		await msg.answer('Вкажіть кількість')
+
 

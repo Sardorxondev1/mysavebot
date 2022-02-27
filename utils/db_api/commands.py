@@ -1,7 +1,7 @@
 from .models import Music, User, Group, DataLogger, Video
 import sqlalchemy
 from sqlalchemy import func
-from loader import session, base, engine
+from loader import session, base, engine, config
 import logging
 
 # base.metadata.drop_all(engine)
@@ -227,16 +227,6 @@ async def get_categories(user_id):
         category = dt['category']
         if not category in categories:
             categories.append(category)
-    print(categories)
     return categories
 
 
-async def get_page(user_id):
-    return session.query(User).filter_by(user_id=user_id).distinct().first().get['chat_to_msg']
-
-
-async def set_page(user_id=None, count=None):
-    if user_id and count:
-        session.query(User).filter_by(user_id=user_id).update(
-            {"chat_to_msg": f"{count}"}, synchronize_session="fetch")
-        commit()

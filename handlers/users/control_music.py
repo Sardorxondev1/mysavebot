@@ -2,20 +2,16 @@ import asyncio
 import logging
 from typing import Union
 
-from aiogram import types
 import aiogram
-from aiogram.dispatcher.filters.builtin import Command, Text
-from aiogram.dispatcher.storage import FSMContext
+from aiogram.dispatcher.filters.builtin import Command
 from aiogram.types.callback_query import CallbackQuery
 from aiogram.types.message import Message
 
 from filters import IsPrivate
 from keyboards.inline.music_ad import music_add_panel, music_ad_cd
 from keyboards.inline.music_panel import musics_keyboard, musics_cd
-from loader import config
-from loader import dp, bot
-from states.music_add import Music, Video
-from utils.db_api.commands import control_music, get_categories, search_musics, control_video, search_videos
+from loader import dp, bot, config
+from utils.db_api.commands import control_music, search_musics, search_videos
 
 
 @dp.message_handler(IsPrivate(), Command('get'))
@@ -200,6 +196,6 @@ async def control_all_musics(call: CallbackQuery, callback_data: dict):
 		from_page=from_page,
 		name_menu=name_menu,
 	)
-	print(
-		f'ACTION: {action} | FUNC: {func} | USER_ID: {user_id} | ID_CODE: {id_code} | PAGES: {pages} | PAGE: {page} | FROM_PAGE: {from_page} | NAME_MENU: {name_menu}')
+	#print(
+	#	f'ACTION: {action} | FUNC: {func} | USER_ID: {user_id} | ID_CODE: {id_code} | PAGES: {pages} | PAGE: {page} | FROM_PAGE: {from_page} | NAME_MENU: {name_menu}')
 
