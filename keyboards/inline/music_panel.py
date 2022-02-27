@@ -36,7 +36,6 @@ async def musics_keyboard(user_id, page='1', count_page_max=config_read(), count
         pages = int(pages[0]) + 1
     else:
         pages = int(pages[0])
-    print(count_page_min, count_page_max, count_page)
     if name_menu == 'music' or name_menu == 'video':
         for data in datas[int(count_page_min):int(count_page_max)]:
             data = data.get
@@ -46,9 +45,9 @@ async def musics_keyboard(user_id, page='1', count_page_max=config_read(), count
         for category in datas[int(count_page_min):int(count_page_max)]:
             callback = make_callback(action=name_menu, user_id=user_id, func=category)
             markup.insert(InlineKeyboardButton(text=f'{category}', callback_data=callback))
-    markup.row(InlineKeyboardButton(text='🞀', callback_data=make_callback(action='navigate', func='back',user_id=user_id, pages=1, page=page, from_page=f'{count_page_min},{count_page_max}', name_menu=name_menu)),
+    markup.row(InlineKeyboardButton(text='⥶', callback_data=make_callback(action='navigate', func='back',user_id=user_id, pages=1, page=page, from_page=f'{count_page_min},{count_page_max}', name_menu=name_menu)),
                InlineKeyboardButton(text=f'⥁ [{page}/{pages} ст.]', callback_data=make_callback(user_id=user_id, from_page=f'{count_page_min},{count_page_max}', page=page, action='update_page', name_menu=name_menu)),
-               InlineKeyboardButton(text='🞂', callback_data=make_callback(action='navigate', func='next', user_id=user_id, pages=pages, page=page, from_page=f'{count_page_min},{count_page_max}', name_menu=name_menu)),
+               InlineKeyboardButton(text='⥸', callback_data=make_callback(action='navigate', func='next', user_id=user_id, pages=pages, page=page, from_page=f'{count_page_min},{count_page_max}', name_menu=name_menu)),
                )
     if not category:
         category = ''
