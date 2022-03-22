@@ -10,6 +10,8 @@ online_db = "postgresql://scjmytdnbachvn:f13b47c4a417d436a691117290c7e07112681f7
 offline_db = 'sqlite:///main.db'
 config = configparser.ConfigParser()
 config.read(r'data/config.ini')
+id_owner = config['DEFAULT']['id_owner_bot']
+
 
 bot = Bot(token=config['DEFAULT']['bot_token'],
           parse_mode=types.ParseMode.HTML)

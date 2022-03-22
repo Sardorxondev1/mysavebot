@@ -30,7 +30,7 @@ async def add_func(msg: Message):
 	
 # You can use state '*' if you need to handle all states
 @dp.message_handler(state='*', commands='cancel')
-@dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
+@dp.message_handler(Text(equals='Скасувати', ignore_case=True), state='*')
 async def cancel_handler(message: types.Message, state: FSMContext):
 	"""
 	Allow user to cancel any action
@@ -87,6 +87,7 @@ async def music_in_data(msg: types.Message, state: FSMContext):
 				await msg.answer(f'<b>[<code>{performer}</code> - <code>{name}</code>]</b> <b>Добавлено!</b>', disable_notification=True)
 			else:
 				await msg.answer(f'<b>[<code>{performer}</code> - <code>{name}</code>]</b> <b>Не вийшло добавити!</b>')
+			print('+')
 			await asyncio.sleep(0.5)
 			await state.finish()
 		except KeyError:
@@ -95,6 +96,8 @@ async def music_in_data(msg: types.Message, state: FSMContext):
 			await asyncio.sleep(0.5)
 		except aiogram.utils.exceptions.CantParseEntities as err:
 			await asyncio.sleep(0.5)
+		finally:
+			print('++')
 
 
 @dp.message_handler(IsPrivate(), Command('add_video'))

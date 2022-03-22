@@ -17,15 +17,14 @@ from filters import IsPrivate
 chat_id_user = 0
 
 
-@dp.message_handler(IsPrivate(), Command('mm'))
+@dp.message_handler(IsPrivate(), Command('start'))
 async def start_music(msg: Message):
+    
     await one_panel(msg=msg)
 
 
 async def one_panel(msg: Union[CallbackQuery, Message], **kwargs):
     markup = await main_panel()
-    if not check(msg.from_user.id, User):
-        await register(msg)
     if isinstance(msg, Message):
         await msg.answer('Головне меню', reply_markup=markup)
     elif isinstance(msg, CallbackQuery):

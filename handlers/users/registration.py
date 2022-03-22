@@ -1,7 +1,6 @@
 from aiogram.dispatcher.filters import Command
 from aiogram.types import Message
 
-from filters import IsPrivate
 from utils.db_api.commands import register_user
 from loader import dp
 

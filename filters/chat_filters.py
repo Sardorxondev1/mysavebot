@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.dispatcher.filters import BoundFilter
 import logging
 
-from utils.db_api.commands import search_users
+from utils.db_api.commands import search_users, register_user
 
 events = []
 
@@ -23,6 +23,7 @@ class IsGroup(BoundFilter):
 
 event = 0
 user_tl = False
+
 class IsPrivate(BoundFilter):
 
 	async def check(self, msg: types.Message):
@@ -35,14 +36,30 @@ class IsPrivate(BoundFilter):
 			if event == 1:
 				user = await search_users(user_id=user_id)
 				if not user:
-					await msg.answer('Ви не зареєстровані\nЩоб зареєструватись /reg')
 					user_tl = False
+					first_name = msg.from_user.first_name
+					last_name = msg.from_user.last_name
+					fullname = ''
+					# Формуємо повне імя і фамілію, якщо є
+					if first_name:
+						fullname = first_name
+						if last_name:
+							fullname = fullname + ' ' + last_name
+					else:
+						fullname = 'Not found!'
+					# Збираємо усі дані в словник
+					data = {
+						'user_id': msg.from_user.id,
+						'chat_id': msg.chat.id,
+						'username': msg.from_user.username,
+						'fullname': fullname,
+					}
+					# Реєструємо користувача, і одразу відправляємо повідомлення через return
+					await register_user(data)
 				else:
 					user_tl = True
 			if user_tl:
 				return True
-			else:
-				pass
 		except AttributeError as err:
 			if str(err) == "'CallbackQuery' object has no attribute 'chat'":
 				call = msg
@@ -54,8 +71,26 @@ class IsPrivate(BoundFilter):
 				if event == 9:
 					user = await search_users(user_id=user_id)
 					if not user:
-						await msg.answer('Ви не зареєстровані\nЩоб зареєструватись /reg')
 						user_tl = False
+						first_name = msg.from_user.first_name
+						last_name = msg.from_user.last_name
+						fullname = ''
+						# Формуємо повне імя і фамілію, якщо є
+						if first_name:
+							fullname = first_name
+							if last_name:
+								fullname = fullname + ' ' + last_name
+						else:
+							fullname = 'Not found!'
+						# Збираємо усі дані в словник
+						data = {
+							'user_id': msg.from_user.id,
+							'chat_id': msg.chat.id,
+							'username': msg.from_user.username,
+							'fullname': fullname,
+						}
+						# Реєструємо користувача, і одразу відправляємо повідомлення через return
+						await register_user(data)
 					else:
 						user_tl = True
 				if user_tl:

@@ -63,28 +63,6 @@ class DataLogger(base):
         }
 
 
-class Group(base):
-    __tablename__ = 'groups'
-    id = Column(Integer, primary_key=True)
-    chat_id = Column(Integer, unique=True)
-    name_group = Column(String)
-    last_update = Column(String, default=datetime.now().strftime(format))
-
-    def __init__(self, chat_id: int, name_group: str):
-        self.chat_id = chat_id
-        self.name_group = name_group
-
-    def __repr__(self):
-        return f'<Group: [{self.chat_id}] {self.name_group}'
-
-    @property
-    def get(self):
-        return {
-            'chat_id': self.chat_id,
-            'name_group': self.name_group,
-        }
-
-
 class Music(base):
     __tablename__ = 'musics'
     id = Column(Integer, primary_key=True)

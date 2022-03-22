@@ -1,12 +1,44 @@
-from .models import Music, User, Group, DataLogger, Video
+from .models import Music, User, DataLogger, Video
 import sqlalchemy
-from sqlalchemy import func
+from sqlalchemy import func, text
 from loader import session, base, engine, config
 import logging
 
 # base.metadata.drop_all(engine)
 
 base.metadata.create_all(engine)
+
+table_models = {
+    'users': User,
+    'log': DataLogger,
+    'musics': Music,
+    'videos': Video,
+}
+
+columns_dict = {
+    'users': {'user_id': User.user_id,
+              'chat_id': User.chat_id,
+              'username': User.username,
+              'fullname': User.fullname,
+              'admin': User.admin,
+              'status_sms': User.status_sms,
+              'chat_to_msg': User.chat_to_msg,
+              'register': User.register},
+    'log': {'level': DataLogger.level,
+            'msg': DataLogger.msg,
+            'data': DataLogger.data},
+    'musics': {'user_id': Music.user_id,
+               'name': Music.name,
+               'performer': Music.performer,
+               'category': Music.category,
+               'id_code': Music.id_code,
+               'file_id': Music.file_id},
+    'videos': {'user_id': Video.user_id,
+               'name': Video.name,
+               'category': Video.category,
+               'id_code': Video.id_code,
+               'file_id': Video.file_id}
+}
 
 
 def commit():
@@ -43,10 +75,8 @@ async def check_admin(user_id):
 
 async def check_musics(user_id, file_unique_id):
     if session.query(Music).filter(Music.user_id == int(user_id), Music.id_code == file_unique_id).first():
-        print('True')
         return True
     else:
-        print('False')
         return False
     
     
@@ -58,8 +88,7 @@ async def check_videos(user_id, file_unique_id):
 
 
 async def del_acc(model, user_id):
-    session.query(model).filter_by(user_id=int(user_id)
-                                   ).delete(synchronize_session="fetch")
+    session.query(model).filter_by(user_id=int(user_id)).delete(synchronize_session="fetch")
     commit()
 
 
@@ -150,13 +179,15 @@ async def control_video(data: dict):
 
 
 async def makeadmin(user_id=None, action='add_admin'):
-    if check(user_id, User):
+    if session.query(User).filter_by(user_id=int(user_id)).exists():
         if action == 'add_admin':
+            print('+')
             session.query(User).filter(User.user_id == int(user_id)). \
                 update({"admin": "1"}, synchronize_session="fetch")
             commit()
             return
         elif action == 'del_admin':
+            print('+')
             session.query(User).filter(User.user_id == int(user_id)). \
                 update({"admin": "0"}, synchronize_session="fetch")
             commit()
@@ -230,3 +261,40 @@ async def get_categories(user_id):
     return categories
 
 
+async def get_with_db(table_name, filter_dt=None):
+    model = table_models[table_name]
+    data = []
+    db_request = None
+    if not filter_dt:
+        db_request = session.query(model).distinct()
+    else:
+        column = filter_dt[0]
+        db_request = session.query(model).filter(columns_dict[table_name][column] == filter_dt[1]).distinct()
+    for rs in db_request:
+        rs = rs.get
+        sr = {}
+        for clm in columns_dict[table_name].keys():
+            sr[clm] = rs[clm]
+        data.append(sr)
+    return data
+
+
+async def del_with_db(table_name, filter_dt=None):
+    try:
+        model = table_models[table_name]
+        data = []
+        db_request = None
+        if not filter_dt:
+            db_request = session.query(model).delete(synchronize_session="evaluate")
+        else:
+            column = filter_dt[0]
+            db_request = session.query(model).filter(columns_dict[table_name][column] == filter_dt[1]).delete(synchronize_session="evaluate")
+        commit()
+        if int(db_request) == 1:
+            return True
+        else:
+            return '[ERROR] Не найдено в базі данних!'
+    except IndexError:
+        return '[ERROR] /del [table_name]-[column]=?'
+    except KeyError as ex:
+        return f'[ERROR] Не знайдено {ex}'

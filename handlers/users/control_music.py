@@ -14,7 +14,7 @@ from loader import dp, bot, config
 from utils.db_api.commands import control_music, search_musics, search_videos
 
 
-@dp.message_handler(IsPrivate(), Command('get'))
+@dp.message_handler(IsPrivate(), Command('get_menu'))
 async def get_musics(msg: Message):
 	args = msg.get_args().split(' ')
 	name_menu = args[0]
@@ -42,7 +42,7 @@ async def music_show(call: CallbackQuery, **kwargs):
 		musics = await search_musics(user_id=user_id, file_unique_id=id_code)
 		file_id = musics.get['file_id']
 		markup = await music_add_panel(user_id=user_id, id_code=id_code)
-		await call.message.answer_audio(file_id, reply_markup=markup)
+		await call.message.answer_audio(file_id, reply_markup=markup, disable_notification=True)
 	except AttributeError as err:
 		logging.error(err)
 		await dp.bot.answer_callback_query(call.id, text='Не найдено пісню[Оновіть сторінку]')
@@ -56,7 +56,7 @@ async def video_show(call: CallbackQuery, **kwargs):
 	id_code = kwargs['id_code']
 	video = await search_videos(user_id=user_id, file_unique_id=id_code)
 	file_id = video.get['file_id']
-	await call.message.answer_video(file_id)
+	await call.message.answer_video(file_id, disable_notification=True)
 	
 	
 async def all_musics(call: CallbackQuery, **kwargs):
@@ -69,7 +69,7 @@ async def all_musics(call: CallbackQuery, **kwargs):
 		music = music.get
 		markup = await music_add_panel(user_id=music['user_id'], id_code=music['id_code'])
 		try:
-			await call.message.answer_audio(audio=music['file_id'], reply_markup=markup)
+			await call.message.answer_audio(audio=music['file_id'], reply_markup=markup, disable_notification=True)
 		except aiogram.utils.exceptions.WrongFileIdentifier as err:
 			await control_music({'function': 'remove', 'user_id': music['user_id'], 'file_unique_id': music['id_code']})
 			await dp.bot.answer_callback_query(call.id, text='Одну з пісень не найдено! Оновіть сторінку')
@@ -111,7 +111,7 @@ async def navigate_button(call: CallbackQuery, **kwargs):
 			markup = await musics_keyboard(call.from_user.id, page, p_max, p_min, name_menu=name_menu)
 			await call.message.edit_reply_markup(markup)
 		else:
-			await dp.bot.answer_callback_query(call.id, text='Це остання сторінка!')
+			await dp.bot.answer_callback_query(call.id, text='Більше нема!')
 	elif action == 'back':
 		if not page == pages:
 			await dp.bot.answer_callback_query(call.id, text='Загружаємо..')
@@ -122,7 +122,7 @@ async def navigate_button(call: CallbackQuery, **kwargs):
 			markup = await musics_keyboard(call.from_user.id, page, p_max, p_min, name_menu=name_menu)
 			await call.message.edit_reply_markup(markup)
 		else:
-			await dp.bot.answer_callback_query(call.id, text='Це перша сторінка!')
+			await dp.bot.answer_callback_query(call.id, text='Більше нема!')
 
 
 async def update_page(call: CallbackQuery, **kwargs):
